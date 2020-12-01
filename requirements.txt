@@ -1,0 +1,4 @@
+numpy==1.19.4
+ortools==8.0.8283
+protobuf==3.14.0
+six==1.15.0
