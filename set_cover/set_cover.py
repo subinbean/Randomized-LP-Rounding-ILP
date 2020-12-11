@@ -59,17 +59,16 @@ class SetCover():
             total_weight += (sets[i] * set_vars[i])
         model.Minimize(total_weight)
 
-        print("hey")
-        from timeit import default_timer as timer
         # solve the constraint program and print the results
         solver = cp_model.CpSolver()
+        from timeit import default_timer as timer
         t = timer()
         if solver.Solve(model) == cp_model.OPTIMAL:
             answer = 0
             for j in range(len(sets)):
-                answer += solver.Value(set_vars[j])    
-            print(f'the optimal set cover weight is {answer}')
+                answer += (solver.Value(set_vars[j]) * sets[j])    
             print(f'the ILP scheme takes time {timer() - t} seconds')
+            print(f'the optimal set cover weight is {answer}')
         else:
             print('this instance of Set Cover is not solvable')
 
@@ -95,6 +94,7 @@ class SetCover():
         solver.Minimize(total_weight)
         
         # solve the constraint program
+        from timeit import default_timer as timer
         t = timer()
         if solver.Solve() == pywraplp.Solver.OPTIMAL:
             set_answers = [set_vars[i].solution_value() for i in range(len(set_vars))]
