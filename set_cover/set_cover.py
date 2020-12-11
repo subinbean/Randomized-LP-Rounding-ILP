@@ -2,12 +2,15 @@ class SetCover():
     # initializes the object with the dataset, parses the data
     def __init__(self, inputFile):
         with open(inputFile) as f:
-            lines = f.split("\n")
+            content = f.read()
+            lines = content.split("\n")
             firstLine = lines[0].split()
             # m is the number of rows, which correspond to elements 
-            self.m = firstLine[0]
+            self.m = int(firstLine[0])
+            print(f"m is {self.m}")
             # n is the number of columns, which correspond to sets
-            self.n = firstLine[1]
+            self.n = int(firstLine[1])
+            print(f"n is {self.n}")
             # sets is a list where sets[i] corresponds to the weight of the i-th set
             sets = []
             # elements is a list of lists where elements[i] is the set of sets that contain element i
@@ -17,16 +20,21 @@ class SetCover():
                 line = lines[i].split()
                 if len(sets) < self.n:
                     for weight in line:
-                        sets.append(weight)
-                elif len(line) == 1 and len(elements) != 0:
-                    elements.append(temp)
-                    temp = []
+                        sets.append(int(weight))
+                elif len(line) == 1:
+                    if len(temp) != 0:
+                        elements.append(temp)
+                        temp = []
+                    else:
+                        continue
                 else:
                     for setNumber in line:
-                        temp.append(setNumber)
+                        temp.append(int(setNumber))
             elements.append(temp)
             self.sets = sets
             self.elements = elements
+            print(self.sets)
+            print(self.elements)
     
     # the Integer Linear Program version of Set Cover, solved exactly using the CP-SAT ILP Solver
     def solveILP(self):
@@ -40,7 +48,7 @@ class SetCover():
         for element in elements:
             setCoverConstraint = 0
             for elementSet in element:
-                setCoverConstraint += set_vars[elementSet]
+                setCoverConstraint += set_vars[elementSet - 1]
             model.Add(setCoverConstraint >= 1)
         # minimization of the total weight
         total_weight = 0
@@ -50,7 +58,7 @@ class SetCover():
 
         # solve the constraint program and print the results
         solver = cp_model.CpSolver()
-        if solver.Solve(model) == cp_model.OPTIMAL:
+        if solver.Solve(model) == cp_model.FEASIBLE:
             answer = 0
             for j in range(len(sets)):
                 answer += solver.Value(set_vars[j])    
@@ -70,7 +78,7 @@ class SetCover():
         for element in elements:
             setCoverConstraint = 0
             for elementSet in element:
-                setCoverConstraint += set_vars[elementSet]
+                setCoverConstraint += set_vars[elementSet - 1]
             solver.Add(setCoverConstraint >= 1)
         # minimization of the total weight using linear programming
         total_weight = 0
@@ -79,18 +87,33 @@ class SetCover():
         solver.Minimize(total_weight)
         
         # solve the constraint program
-        if solver.Solve() == Solver.OPTIMAL:
+        from timeit import default_timer as timer
+        t = timer()
+        if solver.Solve() == pywraplp.Solver.OPTIMAL:
             set_answers = [set_vars[i].solution_value() for i in range(len(set_vars))]
-        
+        else:
+            print("impossible to solve this instance of set cover!")
+            return
+
         # randomzied rounding scheme: add the set to the solution with probability corresponding to the value of the variable
         answer = 0
         for setElem in range(len(sets)):
             if random.random() < set_answers[setElem]:
                 answer += sets[setElem]
-
+        
+        # for elements that are not covered after the rounding scheme, add the minimum weight set that covers it
+        for element in elements:
+            setCoverConstraint = 0
+            for elementSet in element:
+                setCoverConstraint += set_vars[elementSet - 1]
+                if setCoverConstraint >= 1:
+                    break
+            if setCoverConstraint == 0:
+                elementWeights = [sets[i - 1] for i in element]
+                answer += min(elementWeights)
         # print the results
+        print(f'the LP Rounding scheme takes time {timer() - t} seconds')
         print(f'the optimal set cover weight is {answer}')
-        print(solver.ResponseStats())
 
         
 
