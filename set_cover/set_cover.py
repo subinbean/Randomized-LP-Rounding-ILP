@@ -42,28 +42,36 @@ class SetCover():
         model = cp_model.CpModel()
         elements = self.elements
         sets = self.sets
+
         # indicator variables for whether or not the i-th set is included in the solution
         set_vars = [model.NewBoolVar(f'indicator for set {i}') for i in range(self.n)]
+
         # constraint that each vertex needs to be covered
         for element in elements:
             setCoverConstraint = 0
             for elementSet in element:
                 setCoverConstraint += set_vars[elementSet - 1]
             model.Add(setCoverConstraint >= 1)
+
         # minimization of the total weight
         total_weight = 0
         for i in range(len(sets)):
             total_weight += (sets[i] * set_vars[i])
         model.Minimize(total_weight)
 
+        print("hey")
+        from timeit import default_timer as timer
         # solve the constraint program and print the results
         solver = cp_model.CpSolver()
-        if solver.Solve(model) == cp_model.FEASIBLE:
+        t = timer()
+        if solver.Solve(model) == cp_model.OPTIMAL:
             answer = 0
             for j in range(len(sets)):
                 answer += solver.Value(set_vars[j])    
             print(f'the optimal set cover weight is {answer}')
-            print(solver.ResponseStats())
+            print(f'the ILP scheme takes time {timer() - t} seconds')
+        else:
+            print('this instance of Set Cover is not solvable')
 
     # the Linear Programming + Randomized Rounding Scheme version of Set Cover, approximated by using the GLOP solver and rounding scheme
     def solveLP_Rounding(self):
@@ -87,7 +95,6 @@ class SetCover():
         solver.Minimize(total_weight)
         
         # solve the constraint program
-        from timeit import default_timer as timer
         t = timer()
         if solver.Solve() == pywraplp.Solver.OPTIMAL:
             set_answers = [set_vars[i].solution_value() for i in range(len(set_vars))]
