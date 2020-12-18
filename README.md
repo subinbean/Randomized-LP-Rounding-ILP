@@ -20,8 +20,11 @@ The Randomized LP Rounding Paradigm takes the following approach to approximatel
 5. Output the rounded solution
 
 
-## Dataset Sources
-### Set Cover
+## Set Cover
+### Results
+Everything for the SetCover algorithm implementation is included in `set_cover.py`, and the results are included in `set_cover.ipynb`. For a brief summary here, the randomized rounding scheme we use is including each set with probability p where p is the value assigned to the set by the Liner program. We iterate that procedure log n times where n is the number of elements, and then we for each uncovered element after the log n procedures the minimum weight set that covers it. We notice from our results that the randomized scheme does extermely well in easier versions of the problem, but quickly falls off in hard instances. As such, the rounding scheme may be useful if we know beforehand that the dataset is easier, but the ILP version gives a very consistent performance (the margin between the optimal value and the ILP value that was cut-off was the same). As such, a mix of the two would be recommended. 
+
+### Dataset Sources
 The datasets used for the set cover problem belong to the OR-Library open-sourced by J E Beasley, Professor of Operational Research in the Department of Mathematical Sciences, Brunel University, West London. 
 
 His website can be found here: http://people.brunel.ac.uk/~mastjjb/jeb/jeb.html
