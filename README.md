@@ -32,6 +32,13 @@ His website can be found here: http://people.brunel.ac.uk/~mastjjb/jeb/jeb.html
 And the OR-Library for Set Cover that contains links to the datset can be found here: http://people.brunel.ac.uk/~mastjjb/jeb/orlib/scpinfo.html
 
 ## MaxSAT
-Everything for MaxSAT is included in `max_sat.ipynb`. Each section is documented, and the current saved version has all the plots and results. I also summarize some conclusions in line.
+### Data
+For MaxSAT, we went with randomly generated data since it gives us the most control over 
+the sizes and shapes of the formulae, allowing us to see detailed runtime correlation with 
+number of variables and number of clauses. It also allows us to sample over a wide range of
+sizes/shapes.
+
+### Results
+Everything for MaxSAT is included in `max_sat.ipynb`. Each section is documented, and the current saved version has all the plots, results, and conclusions.
 For a brief summary here, we essentially concluded that (1) LP rounding gets really good approximation error in practice, and (2) ILP does really well even when constraining it to 
 linear runtime (despite it actually requiring exponential time for optimality).
