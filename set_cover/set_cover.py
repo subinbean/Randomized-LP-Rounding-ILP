@@ -1,6 +1,6 @@
 class SetCover():
     # initializes the object with the dataset, parses the data
-    def __init__(self, inputFile, printData):
+    def __init__(self, inputFile, printData=False):
         with open(inputFile) as f:
             content = f.read()
             lines = content.split("\n")
@@ -38,7 +38,7 @@ class SetCover():
                 print(self.elements)
     
     # the Integer Linear Program version of Set Cover, solved exactly using the CP-SAT ILP Solver
-    def solveILP(self):
+    def solveILP(self, timeLimit=None, printData=False):
         from ortools.sat.python import cp_model
         model = cp_model.CpModel()
         elements = self.elements
@@ -62,27 +62,32 @@ class SetCover():
 
         # solve the constraint program and print the results
         solver = cp_model.CpSolver()
-        solver.parameters.max_time_in_seconds = 0.06
+        if timeLimit is not None:
+            solver.parameters.max_time_in_seconds = timeLimit
         from timeit import default_timer as timer
         t = timer()
         result = solver.Solve(model)
         if result == cp_model.OPTIMAL:
             answer = 0
             for j in range(len(sets)):
-                answer += (solver.Value(set_vars[j]) * sets[j])    
-            print(f'the ILP scheme takes time {timer() - t} seconds')
-            print(f'the optimal set cover weight is {answer}')
+                answer += (solver.Value(set_vars[j]) * sets[j])
+            if printData:    
+                print(f'the ILP scheme takes time {timer() - t} seconds')
+                print(f'the optimal set cover weight is {answer}')
+            return (timer() - t, answer)
         elif result == cp_model.FEASIBLE:
             answer = 0
             for j in range(len(sets)):
-                answer += (solver.Value(set_vars[j]) * sets[j])    
-            print(f'the ILP scheme takes time {timer() - t} seconds')
-            print(f'the feasible set cover weight is {answer}')
+                answer += (solver.Value(set_vars[j]) * sets[j])
+            if printData:    
+                print(f'the ILP scheme takes time {timer() - t} seconds')
+                print(f'the feasible set cover weight is {answer}')
+            return (timer() - t, answer)
         else:
             print('this instance of Set Cover is not solvable')
 
     # the Linear Programming + Randomized Rounding Scheme version of Set Cover, approximated by using the GLOP solver and rounding scheme
-    def solveLP_Rounding(self):
+    def solveLP_Rounding(self, printData=False):
         from ortools.linear_solver import pywraplp
         import random
         solver = pywraplp.Solver('set_cover_LP_solver', pywraplp.Solver.GLOP_LINEAR_PROGRAMMING)
@@ -134,8 +139,11 @@ class SetCover():
                 elementWeights = [sets[i - 1] for i in element]
                 answer += min(elementWeights)
         # print the results
-        print(f'the LP Rounding scheme takes time {timer() - t} seconds')
-        print(f'the optimal set cover weight is {answer}')
+        if printData:
+            print(f'the LP Rounding scheme takes time {timer() - t} seconds')
+            print(f'the optimal set cover weight is {answer}')
+        
+        return (timer() - t, answer)
 
         
 
