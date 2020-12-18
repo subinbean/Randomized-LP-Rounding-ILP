@@ -1,16 +1,14 @@
 class SetCover():
     # initializes the object with the dataset, parses the data
-    def __init__(self, inputFile):
+    def __init__(self, inputFile, printData):
         with open(inputFile) as f:
             content = f.read()
             lines = content.split("\n")
             firstLine = lines[0].split()
             # m is the number of rows, which correspond to elements 
             self.m = int(firstLine[0])
-            print(f"m is {self.m}")
             # n is the number of columns, which correspond to sets
             self.n = int(firstLine[1])
-            print(f"n is {self.n}")
             # sets is a list where sets[i] corresponds to the weight of the i-th set
             sets = []
             # elements is a list of lists where elements[i] is the set of sets that contain element i
@@ -33,8 +31,11 @@ class SetCover():
             elements.append(temp)
             self.sets = sets
             self.elements = elements
-            print(self.sets)
-            print(self.elements)
+            if printData:
+                print(f"m is {self.m}")
+                print(f"n is {self.n}")
+                print(self.sets)
+                print(self.elements)
     
     # the Integer Linear Program version of Set Cover, solved exactly using the CP-SAT ILP Solver
     def solveILP(self):
@@ -61,14 +62,22 @@ class SetCover():
 
         # solve the constraint program and print the results
         solver = cp_model.CpSolver()
+        solver.parameters.max_time_in_seconds = 0.06
         from timeit import default_timer as timer
         t = timer()
-        if solver.Solve(model) == cp_model.OPTIMAL:
+        result = solver.Solve(model)
+        if result == cp_model.OPTIMAL:
             answer = 0
             for j in range(len(sets)):
                 answer += (solver.Value(set_vars[j]) * sets[j])    
             print(f'the ILP scheme takes time {timer() - t} seconds')
             print(f'the optimal set cover weight is {answer}')
+        elif result == cp_model.FEASIBLE:
+            answer = 0
+            for j in range(len(sets)):
+                answer += (solver.Value(set_vars[j]) * sets[j])    
+            print(f'the ILP scheme takes time {timer() - t} seconds')
+            print(f'the feasible set cover weight is {answer}')
         else:
             print('this instance of Set Cover is not solvable')
 
@@ -102,20 +111,26 @@ class SetCover():
             print("impossible to solve this instance of set cover!")
             return
 
-        # randomzied rounding scheme: add the set to the solution with probability corresponding to the value of the variable
+        # randomzied rounding scheme: add the set to the solution with probability corresponding to the value of the variable. Run this log n times
         answer = 0
-        for setElem in range(len(sets)):
-            if random.random() < set_answers[setElem]:
-                answer += sets[setElem]
-        
+        counter = 1
+        added = set()
+        while (counter < self.n):
+            for setElem in range(len(sets)):
+                if random.random() < set_answers[setElem]:
+                    added.add(setElem)
+            counter = counter * 2
+        for addedSet in added:
+            answer += sets[addedSet]
+
         # for elements that are not covered after the rounding scheme, add the minimum weight set that covers it
         for element in elements:
-            setCoverConstraint = 0
+            covered = False
             for elementSet in element:
-                setCoverConstraint += set_vars[elementSet - 1]
-                if setCoverConstraint >= 1:
+                if (elementSet - 1) in added:
+                    covered = True
                     break
-            if setCoverConstraint == 0:
+            if not covered:
                 elementWeights = [sets[i - 1] for i in element]
                 answer += min(elementWeights)
         # print the results
