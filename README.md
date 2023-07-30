@@ -1,7 +1,7 @@
 # Randomized-LP-Rounding-ILP
 ## Overview
 ### Motivation
-- As we learned in class, Linear Programming (LP) as well as Integer Linear Programming (ILP) is an extremely valuable abstraction / method for us in tackling NP-hard problems in practice
+- Linear Programming (LP) as well as Integer Linear Programming (ILP) is an extremely valuable abstraction / method for us in tackling NP-hard problems in practice
 - When we went from LPs to ILPs in class, we encountered some bad theory news that we can construct IPs whose rounded LP solutions are arbitrarily far away
 - However, for some NP-hard problems, we are able to use randomization to round the ILP solution in a clever way so that we can bound our “approximation ratio” (the ratio between the solution we get and the optimal solution.” This is known as the **Randomized LP Rounding Paradigm**
 
